@@ -13,7 +13,9 @@ import slowfast.utils.distributed as du
 import slowfast.utils.logging as logging
 import slowfast.utils.misc as misc
 import slowfast.visualization.tensorboard_vis as tb
-from slowfast.datasets import loader
+# from slowfast.datasets.meccano import loader
+from slowfast.datasets.meccano import Meccano
+
 from slowfast.models import build_model
 from slowfast.utils.env import pathmgr
 from slowfast.utils.meters import AVAMeter, TestMeter
@@ -45,8 +47,10 @@ def perform_test(test_loader, model, test_meter, cfg, writer=None):
     # Enable eval mode.
     model.eval()
     test_meter.iter_tic()
+    # print('yeeees')
+    # print("x: ", test_loader.gg(1))
 
-    for cur_iter, (inputs, labels, video_idx, time, meta) in enumerate(
+    for cur_iter, (inputs, labels, video_idx, meta) in enumerate(
         test_loader
     ):
 
@@ -59,7 +63,9 @@ def perform_test(test_loader, model, test_meter, cfg, writer=None):
                 inputs = inputs.cuda(non_blocking=True)
             # Transfer the data to the current GPU device.
             labels = labels.cuda()
+            labels=labels.to(device='cuda:0')
             video_idx = video_idx.cuda()
+            # print(inputs.shape)
             for key, val in meta.items():
                 if isinstance(val, (list,)):
                     for i in range(len(val)):
@@ -206,6 +212,7 @@ def test(cfg):
             and cfg.MODEL.MODEL_NAME == "ContrastiveModel"
             and cfg.CONTRASTIVE.KNN_ON
         ):
+            
             train_loader = loader.construct_loader(cfg, "train")
             if hasattr(model, "module"):
                 model.module.init_knn_labels(train_loader)
@@ -215,9 +222,12 @@ def test(cfg):
         cu.load_test_checkpoint(cfg, model)
 
         # Create video testing loaders.
-        test_loader = loader.construct_loader(cfg, "test")
-        logger.info("Testing model for {} iterations".format(len(test_loader)))
-
+        test_=Meccano(cfg, mode="test")
+        test_loader=torch.utils.data.DataLoader(
+            test_,
+            batch_size=32,
+            num_workers=0,
+            pin_memory=False,)
         if cfg.DETECTION.ENABLE:
             assert cfg.NUM_GPUS == cfg.TEST.BATCH_SIZE or cfg.NUM_GPUS == 0
             test_meter = AVAMeter(len(test_loader), cfg, mode="test")
