@@ -492,18 +492,19 @@ def build_trainer(cfg):
     optimizer = optim.construct_optimizer(model, cfg)
 
     # Create the video train and val loaders.
+    
     train_=Meccano(cfg, mode="train")
     train_loader=torch.utils.data.DataLoader(
             train_,
-            batch_size=1,
-            num_workers=1,
-            pin_memory=True,)
+            batch_size=8,
+            num_workers=12,
+            pin_memory=True,collate_fn=my_collate)
     val_=Meccano(cfg, mode="val")
     val_loader=torch.utils.data.DataLoader(
             val_,
             batch_size=32,
             num_workers=20,
-            pin_memory=True,)
+            pin_memory=True,collate_fn=my_collate)
     # train_loader = loader.construct_loader(cfg, "train")
     # val_loader = loader.construct_loader(cfg, "val")
     # precise_bn_loader = loader.construct_loader(
@@ -522,6 +523,21 @@ def build_trainer(cfg):
         train_meter,
         val_meter,
     )
+
+def my_collate(batch):
+        len_batch = len(batch)
+        batch = list(filter (lambda x:x is not None, batch))
+        # if len_batch > len(batch):                
+        #     db_len = len(train_)
+        #     diff = len_batch - len(batch)
+        #     while diff != 0:
+        #         a = train_[np.random.randint(0, db_len)]
+        #         if a is None:                
+        #             continue
+        #         batch.append(a)
+        #         diff -= 1
+
+        return torch.utils.data.dataloader.default_collate(batch)
 
 
 def train(cfg,cfg2):

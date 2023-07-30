@@ -204,86 +204,101 @@ class Meccano_videog(torch.utils.data.Dataset):
             self.cfg.DATA.PATH_TO_DATA_DIR,self.mode+'g', f"{folder_name}_{name_frame}.mp4"
         )
         # print(video_path)
-        if os.path.exists(video_path):
-            # Read video data as bytes.
-            # with open(video_path, 'rb') as f:
-                # video_data = f.read()
+        try: 
+            if os.path.exists(video_path):
+                # Read video data as bytes.
+                # with open(video_path, 'rb') as f:
+                    # video_data = f.read()
 
-            # Read video frames and audio frames using torchvision.io._read_video_from_memory.
-            # vframes, aframes = io._read_video_from_memory(video_data)
-            # frames=[]
-            # reader = torchvision.io.VideoReader(video_path, "video")
-            # reader.seek(2)
-            # for frame in reader:
-                # frames.append(frame['data'])
-            # frames= torch.stack(frames)
-            vframes, aframes, info = io.read_video(video_path)
-            dframes, aframes, info = io.read_video(depth_path)
-            gframes, aframes, info = io.read_video(gaze_path)
+                # Read video frames and audio frames using torchvision.io._read_video_from_memory.
+                # vframes, aframes = io._read_video_from_memory(video_data)
+                frames=[]
+                framesd=[]
+                framesg=[]
+                reader = torchvision.io.VideoReader(video_path, "video")
+                # reader.seek(2)
+                for frame in reader:
+                    frames.append(frame['data'])
+                frames= torch.stack(frames)
+                reader = torchvision.io.VideoReader(depth_path, "video")
+                # reader.seek(2)
+                for frame in reader:
+                    framesd.append(frame['data'])
+                framesd= torch.stack(framesd)
+                reader = torchvision.io.VideoReader(gaze_path, "video")
+                # reader.seek(2)
+                for frame in reader:
+                    framesg.append(frame['data'])
+                framesg= torch.stack(framesg)
+                # vframes, aframes, info = io.read_video(video_path)
+                # dframes, aframes, info = io.read_video(depth_path)
+                # gframes, aframes, info = io.read_video(gaze_path)
 
-            # frames = vframes.to(self.device)
-            # vframes will be of shape (T, H, W, C)
-            # aframes will be of shape (L, K) where L is the number of audio points and K is the number of channels.
+                # frames = vframes.to(self.device)
+                # vframes will be of shape (T, H, W, C)
+                # aframes will be of shape (L, K) where L is the number of audio points and K is the number of channels.
 
-            # Since you only want to work with video frames, you can keep using the vframes tensor.
-            # You can convert it to torch.Tensor and use it in the rest of your function as before.
-            frames = vframes
-            framesd = dframes
-            framesg=gframes
+                # Since you only want to work with video frames, you can keep using the vframes tensor.
+                # You can convert it to torch.Tensor and use it in the rest of your function as before.
+                # frames = vframes
+                # framesd = dframes
+                # framesg=gframes
 
 
-            # If you want to use audio frames, you can do so by using the aframes tensor.
+                # If you want to use audio frames, you can do so by using the aframes tensor.
 
-        else:
-            print(video_path)
-        #sampling frames
-        
-        frames = sampling.temporal_sampling(frames, int(self._frame_start[index][:-4]), int(self._frame_end[index][:-4]), self.cfg.DATA.NUM_FRAMES)
-        framesd = sampling.temporal_sampling(framesd, int(self._frame_start[index][:-4]), int(self._frame_end[index][:-4]), self.cfg.DATA.NUM_FRAMES)
-        framesg = sampling.temporal_sampling(framesg, int(self._frame_start[index][:-4]), int(self._frame_end[index][:-4]), self.cfg.DATA.NUM_FRAMES)
+            else:
+                print(video_path)
+            #sampling frames
+            
+            frames = sampling.temporal_sampling(frames, int(self._frame_start[index][:-4]), int(self._frame_end[index][:-4]), self.cfg.DATA.NUM_FRAMES)
+            framesd = sampling.temporal_sampling(framesd, int(self._frame_start[index][:-4]), int(self._frame_end[index][:-4]), self.cfg.DATA.NUM_FRAMES)
+            framesg = sampling.temporal_sampling(framesg, int(self._frame_start[index][:-4]), int(self._frame_end[index][:-4]), self.cfg.DATA.NUM_FRAMES)
 
-        # Perform color normalization.
-        frames = frames / 255.0
-        framesd = framesd / 255.0
-        framesg = framesg / 255.0
-        mm=torch.tensor(self.cfg.DATA.MEAN).to(frames.device)
-        std=torch.tensor(self.cfg.DATA.STD).to(frames.device)
-        frames = frames - mm
-        frames = frames / std
-        framesd = framesd - mm
-        framesd = framesd / std
-        framesg = framesg - mm
-        framesg = framesg / std
-        del mm
-        del std
-        # T H W C -> C T H W.
-        frames = frames.permute(3, 0, 1, 2)
-        framesd = framesd.permute(3, 0, 1, 2)
-        framesg = framesg.permute(3, 0, 1, 2)
-        framesd=torch.nn.functional.interpolate(
-        framesd,
-        size=(frames.shape[2], frames.shape[3]),
-        mode="bilinear",
-        align_corners=False,
-        )
-        # Perform data augmentation.
-        lener=frames.shape[1]
-        frames=torch.cat((frames,framesd,framesg),dim=1)
-        frames = self.spatial_sampling(
-                frames,
-                spatial_idx=spatial_sample_index,
-                min_scale=min_scale,
-                max_scale=max_scale,
-                crop_size=crop_size,
-                random_horizontal_flip=self.cfg.DATA.RANDOM_FLIP,
+            # Perform color normalization.
+            frames = frames / 255.0
+            framesd = framesd / 255.0
+            framesg = framesg / 255.0
+            mm=torch.tensor(self.cfg.DATA.MEAN).to(frames.device)
+            std=torch.tensor(self.cfg.DATA.STD).to(frames.device)
+            frames = frames - mm
+            frames = frames / std
+            framesd = framesd - mm
+            framesd = framesd / std
+            framesg = framesg - mm
+            framesg = framesg / std
+            del mm
+            del std
+            # T H W C -> C T H W.
+            frames = frames.permute(3, 0, 1, 2)
+            framesd = framesd.permute(3, 0, 1, 2)
+            framesg = framesg.permute(3, 0, 1, 2)
+            framesd=torch.nn.functional.interpolate(
+            framesd,
+            size=(frames.shape[2], frames.shape[3]),
+            mode="bilinear",
+            align_corners=False,
             )
-        frames,framesd,framesg=torch.split(frames,lener,dim=1)
-        framesd=self.pack_pathway_output(framesd)
-        label = torch.tensor(self._labels[index])
-        index = torch.tensor(index)
-        frames = [framesd, frames,framesg]
-        
-        return frames, label, index, {}
+            # Perform data augmentation.
+            lener=frames.shape[1]
+            frames=torch.cat((frames,framesd,framesg),dim=1)
+            frames = self.spatial_sampling(
+                    frames,
+                    spatial_idx=spatial_sample_index,
+                    min_scale=min_scale,
+                    max_scale=max_scale,
+                    crop_size=crop_size,
+                    random_horizontal_flip=self.cfg.DATA.RANDOM_FLIP,
+                )
+            frames,framesd,framesg=torch.split(frames,lener,dim=1)
+            framesd=self.pack_pathway_output(framesd)
+            label = torch.tensor(self._labels[index])
+            index = torch.tensor(index)
+            frames = [framesd, frames,framesg]
+            
+            return frames, label, index, {}
+        except Exception as e:
+            print(e)
     def pack_pathway_output( self,frames):
             """
             Prepare output as a list of tensors. Each tensor corresponding to a
