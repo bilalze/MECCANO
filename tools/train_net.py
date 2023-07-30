@@ -16,6 +16,8 @@ import slowfast.utils.distributed as du
 import slowfast.utils.logging as logging
 import slowfast.utils.metrics as metrics
 import slowfast.utils.misc as misc
+from slowfast.datasets.mecanno_videod import Meccano_videod as Meccano
+
 import slowfast.visualization.tensorboard_vis as tb
 from slowfast.datasets import loader
 from slowfast.datasets.mixup import MixUp
@@ -489,8 +491,20 @@ def build_trainer(cfg):
     optimizer = optim.construct_optimizer(model, cfg)
 
     # Create the video train and val loaders.
-    train_loader = loader.construct_loader(cfg, "train")
-    val_loader = loader.construct_loader(cfg, "val")
+    train_=Meccano(cfg, mode="train")
+    train_loader=torch.utils.data.DataLoader(
+            train_,
+            batch_size=1,
+            num_workers=1,
+            pin_memory=False,)
+    val_=Meccano(cfg, mode="val")
+    val_loader=torch.utils.data.DataLoader(
+            val_,
+            batch_size=16,
+            num_workers=20,
+            pin_memory=True,)
+    # train_loader = loader.construct_loader(cfg, "train")
+    # val_loader = loader.construct_loader(cfg, "val")
     precise_bn_loader = loader.construct_loader(
         cfg, "train", is_precise_bn=True
     )

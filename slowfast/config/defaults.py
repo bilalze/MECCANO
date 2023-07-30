@@ -411,7 +411,7 @@ _C.MODEL.SINGLE_PATHWAY_ARCH = [
 ]
 
 # Model architectures that has multiple pathways.
-_C.MODEL.MULTI_PATHWAY_ARCH = ["slowfast"]
+_C.MODEL.MULTI_PATHWAY_ARCH = ["slowfast",'slowfast_gaze']
 
 # Dropout rate before final projection in the backbone.
 _C.MODEL.DROPOUT_RATE = 0.5

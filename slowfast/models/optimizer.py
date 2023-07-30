@@ -263,7 +263,10 @@ def set_lr(optimizer, new_lr):
         new_lr (float): the new learning rate to set.
     """
     for param_group in optimizer.param_groups:
-        param_group["lr"] = new_lr * param_group["layer_decay"]
+        if 'layer_decay' not in param_group:
+            param_group["lr"] = new_lr
+        else:
+            param_group["lr"] = new_lr * param_group["layer_decay"]
 
 
 class LARS(object):

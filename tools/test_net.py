@@ -14,11 +14,13 @@ import slowfast.utils.logging as logging
 import slowfast.utils.misc as misc
 import slowfast.visualization.tensorboard_vis as tb
 # from slowfast.datasets.meccano import loader
-from slowfast.datasets.meccano import Meccano
+from slowfast.datasets.mecanno_videog import Meccano_videog as Meccano
 
 from slowfast.models import build_model
 from slowfast.utils.env import pathmgr
 from slowfast.utils.meters import AVAMeter, TestMeter
+from nonechucks import SafeDataLoader
+
 
 logger = logging.get_logger(__name__)
 
@@ -53,7 +55,6 @@ def perform_test(test_loader, model, test_meter, cfg, writer=None):
     for cur_iter, (inputs, labels, video_idx, meta) in enumerate(
         test_loader
     ):
-
         if cfg.NUM_GPUS:
             # Transfer the data to the current GPU device.
             if isinstance(inputs, (list,)):
@@ -62,9 +63,9 @@ def perform_test(test_loader, model, test_meter, cfg, writer=None):
             else:
                 inputs = inputs.cuda(non_blocking=True)
             # Transfer the data to the current GPU device.
-            labels = labels.cuda()
-            labels=labels.to(device='cuda:0')
-            video_idx = video_idx.cuda()
+            # labels = labels.cuda()
+            # labels=labels.to(device='cuda:0')
+            # video_idx = video_idx.cuda()
             # print(inputs.shape)
             for key, val in meta.items():
                 if isinstance(val, (list,)):
@@ -129,9 +130,10 @@ def perform_test(test_loader, model, test_meter, cfg, writer=None):
             preds, labels, video_idx = du.all_gather([preds, labels, video_idx])
         if cfg.NUM_GPUS:
             preds = preds.cpu()
-            labels = labels.cpu()
-            video_idx = video_idx.cpu()
-
+            # labels = labels.cpu()
+            # video_idx = video_idx.cpu()
+            del inputs
+            torch.cuda.empty_cache()
         test_meter.iter_toc()
 
         if not cfg.VIS_MASK.ENABLE:
@@ -168,7 +170,7 @@ def perform_test(test_loader, model, test_meter, cfg, writer=None):
     return test_meter
 
 
-def test(cfg):
+def test(cfg,cfg2):
     """
     Perform multi-view testing on the pretrained video model.
     Args:
@@ -226,8 +228,22 @@ def test(cfg):
         test_loader=torch.utils.data.DataLoader(
             test_,
             batch_size=32,
-            num_workers=0,
-            pin_memory=False,)
+            num_workers=40,
+            pin_memory=True,)
+        # from time import time
+        # import multiprocessing as mp
+        # for num_workers in range(2, mp.cpu_count(), 2):  
+        #     train_loader = torch.utils.data.DataLoader(
+        #     test_,
+        #     batch_size=8,
+        #     num_workers=num_workers,
+        #     pin_memory=False,)
+        #     start = time()
+        #     for epoch in range(1, 3):
+        #         for i, data in enumerate(train_loader, 0):
+        #             pass
+        #     end = time()
+        #     print("Finish with:{} second, num_workers={}".format(end - start, num_workers))
         if cfg.DETECTION.ENABLE:
             assert cfg.NUM_GPUS == cfg.TEST.BATCH_SIZE or cfg.NUM_GPUS == 0
             test_meter = AVAMeter(len(test_loader), cfg, mode="test")

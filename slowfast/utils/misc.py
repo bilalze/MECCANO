@@ -399,7 +399,7 @@ def aggregate_sub_bn_stats(module):
     return count
 
 
-def launch_job(cfg, init_method, func, daemon=False):
+def launch_job(cfg,cfg2, init_method, func, daemon=False):
     """
     Run 'func' on one or more GPUs, specified in cfg
     Args:
@@ -427,7 +427,7 @@ def launch_job(cfg, init_method, func, daemon=False):
             daemon=daemon,
         )
     else:
-        func(cfg=cfg)
+        func(cfg=cfg,cfg2=cfg2)
 
 
 def get_class_names(path, parent_path=None, subset_path=None):

@@ -6,5 +6,7 @@ from .build import DATASET_REGISTRY, build_dataset  # noqa
 from .charades import Charades  # noqa
 from .kinetics import Kinetics  # noqa
 from .ssv2 import Ssv2  # noqa
-from .meccano import Meccano #added
+# from .meccano import Meccano #added
+from .mecanno_video import Meccano_video #added
+
 

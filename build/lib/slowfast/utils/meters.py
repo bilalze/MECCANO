@@ -358,6 +358,7 @@ class TestMeter(object):
             "cur_iter": "{}".format(cur_iter + 1),
             "eta": eta,
             "time_diff": self.iter_timer.seconds(),
+            'total_iters':self.overall_iters
         }
         logging.log_json_stats(stats)
 

@@ -100,9 +100,9 @@ def pack_pathway_output(cfg, frames):
             1,
             torch.linspace(
                 0, frames.shape[1] - 1, frames.shape[1] // cfg.SLOWFAST.ALPHA
-            ).long(),
+            ).long().to(fast_pathway.device),
         )
-        frame_list = [slow_pathway, fast_pathway]
+        frame_list = [slow_pathway, fast_pathway,fast_pathway]
     else:
         raise NotImplementedError(
             "Model arch {} is not in {}".format(

@@ -14,6 +14,8 @@ import simplejson
 
 import slowfast.utils.distributed as du
 from slowfast.utils.env import pathmgr
+import time
+tt=time.time()
 
 
 def _suppress_print():
@@ -96,7 +98,7 @@ def log_json_stats(stats, output_dir=None):
     }
     json_stats = simplejson.dumps(stats, sort_keys=True, use_decimal=True)
     logger = get_logger(__name__)
-    logger.info("json_stats: {:s}".format(json_stats))
+    logger.info("json_stats: {:s}".format(json_stats),tt)
     if du.is_master_proc(du.get_world_size()) and output_dir:
         filename = os.path.join(output_dir, "json_stats.log")
         try:
