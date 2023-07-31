@@ -593,6 +593,7 @@ def train(cfg,cfg2):
                 scaler if cfg.TRAIN.MIXED_PRECISION else None,
             )
             start_epoch = checkpoint_epoch + 1
+            start_epoch=0
         elif "ssl_eval" in cfg.TASK:
             last_checkpoint = cu.get_last_checkpoint(cfg.OUTPUT_DIR, task="ssl")
             checkpoint_epoch = cu.load_checkpoint(
@@ -659,6 +660,7 @@ def train(cfg,cfg2):
             # print(k)
         del model3
         start_epoch = checkpoint_epoch + 1
+        start_epoch=0
     else:
         start_epoch = 0
 
@@ -802,18 +804,18 @@ def train(cfg,cfg2):
         )
 
         # Compute precise BN stats.
-        if (
-            (is_checkp_epoch or is_eval_epoch)
-            and cfg.BN.USE_PRECISE_STATS
-            and len(get_bn_modules(model)) > 0
-        ):
-            calculate_and_update_precise_bn(
-                precise_bn_loader,
-                model,
-                min(cfg.BN.NUM_BATCHES_PRECISE, len(precise_bn_loader)),
-                cfg.NUM_GPUS > 0,
-            )
-        _ = misc.aggregate_sub_bn_stats(model)
+        # if (
+        #     (is_checkp_epoch or is_eval_epoch)
+        #     and cfg.BN.USE_PRECISE_STATS
+        #     and len(get_bn_modules(model)) > 0
+        # ):
+        #     calculate_and_update_precise_bn(
+        #         precise_bn_loader,
+        #         model,
+        #         min(cfg.BN.NUM_BATCHES_PRECISE, len(precise_bn_loader)),
+        #         cfg.NUM_GPUS > 0,
+        #     )
+        # _ = misc.aggregate_sub_bn_stats(model)
 
         # Save a checkpoint.
         if is_checkp_epoch:
